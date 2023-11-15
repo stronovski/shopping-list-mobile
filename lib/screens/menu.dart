@@ -1,4 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:shopping_list/screens/list_product.dart';
+import 'package:shopping_list/screens/login.dart';
 import 'package:shopping_list/screens/shoplist_form.dart';
 import 'package:shopping_list/widgets/left_drawer.dart';
 import 'package:shopping_list/widgets/shop_card.dart';
@@ -135,11 +141,12 @@ class ShopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Material(
       color: Colors.indigo,
       child: InkWell(
         // Area responsive terhadap sentuhan
-      onTap: () {
+      onTap: () async {
         // Memunculkan SnackBar ketika diklik
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -150,6 +157,31 @@ class ShopCard extends StatelessWidget {
         if (item.name == "Tambah Produk") {
           Navigator.push(context, MaterialPageRoute(builder: (context) => const ShopFormPage()));
         }
+        else if (item.name == "Lihat Produk") {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const ProductPage()));
+        }
+
+        else if (item.name == "Logout") {
+          final response = await request.logout(
+              "http://127.0.0.1:8000/auth/logout/");
+          String message = response["message"];
+          if (response['status']) {
+            String uname = response["username"];
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("$message Sampai jumpa, $uname."),
+            ));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+        } 
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("$message"),
+          ));
+        }
+      }
 
       },
         child: Container(
